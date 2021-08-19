@@ -9,7 +9,9 @@ use Icinga\Module\Director\Objects\IcingaCommand;
 use Icinga\Module\Director\Objects\IcingaObject;
 use Icinga\Module\Director\Web\Controller\Extension\DirectorDb;
 use Icinga\Module\Director\Web\Table\ApplyRulesTable;
+use Icinga\Module\Director\Web\Table\ObjectSetTable;
 use Icinga\Module\Director\Web\Table\ObjectsTable;
+use Icinga\Module\Director\Web\Table\ObjectTableSetMembers;
 use Icinga\Module\Director\Web\Table\TemplatesTable;
 use Icinga\Module\Director\Web\Table\TemplateUsageTable;
 use Icinga\Module\Director\Web\Tabs\ObjectTabs;
@@ -41,6 +43,25 @@ abstract class TemplateController extends CompatController
 
         ObjectsTable::create($this->getType(), $this->db())
             ->setAuth($this->Auth())
+            ->setBaseObjectUrl($this->getBaseObjectUrl())
+            ->filterTemplate($template, $this->getInheritance())
+            ->renderTo($this);
+    }
+
+    public function setmembersAction()
+    {
+        $template = $this->requireTemplate();
+        $plural = $this->getTranslatedPluralType();
+        $this
+            ->addSingleTab($plural)
+            ->setAutorefreshInterval(10)
+            ->addTitle(
+                $this->translate('%s based on %s'),
+                $plural,
+                $template->getObjectName()
+            )->addBackToUsageLink($template);
+
+        ObjectTableSetMembers::create($this->getType(), $this->db(), $this->Auth())
             ->setBaseObjectUrl($this->getBaseObjectUrl())
             ->filterTemplate($template, $this->getInheritance())
             ->renderTo($this);
